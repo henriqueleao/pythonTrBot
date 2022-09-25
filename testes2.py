@@ -35,18 +35,15 @@ def get_tick_size(symbol):
                 if f['filterType'] == 'PRICE_FILTER':
                     return f['tickSize']
 
-def testeOpenLong():
+def testeOpenLong(symbol):
     bet = 2  # the percentage of the balance I am willing to buy with
     balance = get_account_balance() * bet / 100
 
     tick_size = float(get_tick_size(symbol))
     step_size = float(get_step_size(symbol))
 
-    print(tick_size)
-
     symbol_info = client.get_ticker(symbol=symbol)
     symbol_price = float(symbol_info['lastPrice'])
-
 
     qty_bruta = Decimal(balance/symbol_price)
     quantity = round_step_size(qty_bruta, step_size)
@@ -57,14 +54,8 @@ def testeOpenLong():
     take_profit_price = (symbol_price * (100 + take_profit_percent))/100
     take_profit_price = round_step_size(take_profit_price, tick_size)
 
-    #stop_loss_price = price_long_enter * (1 - stop_loss_percent / 100)
     stop_loss_price = (symbol_price * (100-stop_loss_percent))/100
     stop_loss_price = round_step_size(stop_loss_price, tick_size)
-
-
-    print(stop_loss_price)
-    print(take_profit_price)
-    print('=======')
 
     client.futures_change_leverage(symbol=symbol, leverage=5)
 
@@ -102,11 +93,53 @@ def testeListTrades():
             openedPositions.append(position)
     print(openedPositions)
 
-def testeOpenShort():
+def testeOpenShort(symbol):
     bet = 2  # the percentage of the balance I am willing to buy with
     balance = get_account_balance() * bet / 100
 
     tick_size = float(get_tick_size(symbol))
     step_size = float(get_step_size(symbol))
 
-testeListTrades()
+    take_profit_percent = 10
+    stop_loss_percent = 5
+
+    symbol_info = client.get_ticker(symbol=symbol)
+    symbol_price = float(symbol_info['lastPrice'])
+
+    qty_bruta = Decimal(balance/symbol_price)
+    quantity = round_step_size(qty_bruta, step_size)
+
+    take_profit_price = (symbol_price * (100 - take_profit_percent))/100
+    stop_loss_price = (symbol_price * (100+ stop_loss_percent))/100
+
+    take_profit_price = round_step_size(take_profit_price, tick_size)
+    stop_loss_price = round_step_size(stop_loss_price, tick_size)
+
+    client.futures_change_leverage(symbol=symbol, leverage=5)
+
+    market_order_short = client.futures_create_order(
+        symbol=symbol,
+        side='SELL',
+        #positionSide='LONG',
+        type='MARKET',
+        quantity=quantity
+    )
+
+    sell_gain_market_short = client.futures_create_order(
+        symbol=symbol,
+        side='BUY',
+        type='TAKE_PROFIT_MARKET',
+        quantity=quantity,
+        stopPrice=take_profit_price
+    )
+
+    sell_stop_market_long = client.futures_create_order(
+        symbol=symbol,
+        side='BUY',
+        type='STOP_MARKET',
+        quantity=quantity,
+        stopPrice=stop_loss_price
+    )
+
+
+testeOpenShort('ETHUSDT')
