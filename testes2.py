@@ -15,9 +15,19 @@ def get_account_balance():
         if balance['asset'] == 'USDT':
             result = balance['balance']
     return float(result)
+def moeda_precisao(symbol):
+    for x in client.futures_exchange_info()['symbols']:
+        if x['symbol'] == symbol:
+            return x['pricePrecision']
+def get_step_size(symbol):
+    info = client.futures_exchange_info()
+    for item in info['symbols']:
+        if item['symbol'] == symbol:
+            for f in item['filters']:
+                if f['filterType'] == 'LOT_SIZE':
+                    return f['stepSize']
 
-
-def get_min_quant(symbol):
+def get_tick_size(symbol):
     info = client.futures_exchange_info()
     for item in info['symbols']:
         if item['symbol'] == symbol:
@@ -25,60 +35,78 @@ def get_min_quant(symbol):
                 if f['filterType'] == 'PRICE_FILTER':
                     return f['tickSize']
 
+def testeOpenLong():
+    bet = 2  # the percentage of the balance I am willing to buy with
+    balance = get_account_balance() * bet / 100
 
-bet = 2  # the percentage of the balance I am willing to buy with
-balance = get_account_balance() * bet / 100
+    tick_size = float(get_tick_size(symbol))
+    step_size = float(get_step_size(symbol))
 
-tick_size = float(get_min_quant(symbol))
-print(tick_size)
+    print(tick_size)
 
-symbol_info = client.get_ticker(symbol=symbol)
-symbol_price = float(symbol_info['lastPrice'])
-#quantity = Decimal(round(balance / symbol_price,2))
-quantity = Decimal(balance / symbol_price)
+    symbol_info = client.get_ticker(symbol=symbol)
+    symbol_price = float(symbol_info['lastPrice'])
 
-enter_long_coeff = 0.4
-take_profit_percent = 0.2
-stop_loss_percent = 0.2
 
-price_long_enter = symbol_price * (1 - enter_long_coeff / 100)  # entry price for a limit order
-price_long_enter = round_step_size(price_long_enter, tick_size)
+    qty_bruta = Decimal(balance/symbol_price)
+    quantity = round_step_size(qty_bruta, step_size)
 
-take_profit_price = price_long_enter * (1 + take_profit_percent / 100)
-take_profit_price = round_step_size(take_profit_price, tick_size)
+    take_profit_percent = 10
+    stop_loss_percent = 5
 
-stop_loss_price = price_long_enter * (1 + take_profit_percent / 100)
-stop_loss_price = round_step_size(stop_loss_price, tick_size)
+    take_profit_price = (symbol_price * (100 + take_profit_percent))/100
+    take_profit_price = round_step_size(take_profit_price, tick_size)
 
-print(price_long_enter)
-print(stop_loss_price)
-print(take_profit_price)
-print('=======')
+    #stop_loss_price = price_long_enter * (1 - stop_loss_percent / 100)
+    stop_loss_price = (symbol_price * (100-stop_loss_percent))/100
+    stop_loss_price = round_step_size(stop_loss_price, tick_size)
 
-limit_order_long = client.futures_create_order(
-    symbol=symbol,
-    side='BUY',
-    positionSide='LONG',
-    type='LIMIT',
-    quantity=quantity,
-    timeInForce='GTC',
-    price=price_long_enter
-)
 
-sell_gain_market_long = client.futures_create_order(
-    symbol=symbol,
-    side='SELL',
-    type='TAKE_PROFIT_MARKET',
-    positionSide='LONG',
-    quantity=quantity,
-    stopPrice=take_profit_price
-)
+    print(stop_loss_price)
+    print(take_profit_price)
+    print('=======')
 
-sell_stop_market_short = client.futures_create_order(
-    symbol=symbol,
-    side='SELL',
-    type='STOP_MARKET',
-    positionSide='LONG',
-    quantity=quantity,
-    stopPrice=stop_loss_price
-)
+    client.futures_change_leverage(symbol=symbol, leverage=5)
+
+    limit_order_long = client.futures_create_order(
+        symbol=symbol,
+        side='BUY',
+        #positionSide='LONG',
+        type='MARKET',
+        quantity=quantity
+    )
+
+    sell_gain_market_long = client.futures_create_order(
+        symbol=symbol,
+        side='SELL',
+        type='TAKE_PROFIT_MARKET',
+        #positionSide='LONG',
+        quantity=quantity,
+        stopPrice=take_profit_price
+    )
+
+    sell_stop_market_short = client.futures_create_order(
+        symbol=symbol,
+        side='SELL',
+        type='STOP_MARKET',
+        #positionSide='LONG',
+        quantity=quantity,
+        stopPrice=stop_loss_price
+    )
+
+def testeListTrades():
+    futures_account = client.futures_account()
+    openedPositions =[]
+    for position in futures_account['positions']:
+        if position['entryPrice'] != '0.0':
+            openedPositions.append(position)
+    print(openedPositions)
+
+def testeOpenShort():
+    bet = 2  # the percentage of the balance I am willing to buy with
+    balance = get_account_balance() * bet / 100
+
+    tick_size = float(get_tick_size(symbol))
+    step_size = float(get_step_size(symbol))
+
+testeListTrades()
