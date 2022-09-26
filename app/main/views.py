@@ -30,7 +30,7 @@ def testeBinance():
 
 
 @main.route('/webhook', methods=['POST'])
-def webhook_testnet():
+def webhook():
     data = json.loads(request.data)
     if data['pwd'] != os.environ.get('WEBHOOK_PASSPHRASE'):
         return {
@@ -41,10 +41,11 @@ def webhook_testnet():
         try:
             symbol = data['sym']
             symbol = symbol[:-4]
+            testnet = os.environ.get('TESTNET') == 'True'
             binanceUtil = BinanceUtil(
                 apiKey=os.environ.get('BINANCE_API_KEY'),
                 secretKey=os.environ.get('BINANCE_SECRET_KEY'),
-                testnet=os.environ.get('TESTNET'),
+                testnet=testnet,
                 percentualSizeTrade=float(os.environ.get('PERCENTUAL_SIZE_TRADE')),
                 leverage=int(os.environ.get('LEVERAGE')),
                 concurrentTrades=int(os.environ.get('CONCURRENT_TRADES'))
