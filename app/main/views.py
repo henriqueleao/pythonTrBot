@@ -13,7 +13,7 @@ def index():
 
 @main.route('/env',methods=['POST'])
 def env():
-    return 'BINANCE_API_KEY: ' + os.environ.get('BINANCE_API_KEY')
+    return 'BINANCE_API_KEY: ' + os.getenv('BINANCE_API_KEY')
 
 @main.route('/testeBinance', methods=['POST'])
 def testeBinance():
