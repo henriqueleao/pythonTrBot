@@ -8,6 +8,16 @@ from ..binance_functions import BinanceUtil
 def index():
     return 'Trading Bot1 - teste'
 
+@main.route('/testeBinance', methods=['POST'])
+def testeBinance():
+    binanceUtil = BinanceUtil(
+        apiKey=os.environ.get('BINANCE_API_KEY'),
+        secretKey=os.environ.get('BINANCE_SECRET_KEY'),
+        testnet=os.environ.get('TESTNET'),
+    )
+    return str(binanceUtil.get_account_balance('USDT'))
+
+
 @main.route('/webhook_testnet', methods=['POST'])
 def webhook_testnet():
     data = json.loads(request.data)
