@@ -11,7 +11,7 @@ load_dotenv()
 def index():
     return 'Trading Bot1 - teste'
 
-@main.route('/env',methods=['POST'])
+@main.route('/env',methods=['POST','GET'])
 def env():
     return 'BINANCE_API_KEY: ' + os.getenv('BINANCE_API_KEY')
 
