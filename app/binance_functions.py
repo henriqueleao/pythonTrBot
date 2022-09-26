@@ -82,9 +82,9 @@ class BinanceUtil:
             stopPrice=stop_loss_price
         )
 
-    def openShort(self, symbol, leverage, stopLossPrice, takeProfitPrice):
+    def openShort(self, symbol, stopLossPrice, takeProfitPrice):
         balance = self.get_account_balance(asset='USDT') * self.percentualSizeTrade / 100
-        self.client.futures_change_leverage(symbol=symbol, leverage=leverage)
+        self.client.futures_change_leverage(symbol=symbol, leverage=self.leverage)
         tick_size = float(self.get_tick_size(symbol))
         step_size = float(self.get_step_size(symbol))
         symbol_info = self.client.get_ticker(symbol=symbol)
