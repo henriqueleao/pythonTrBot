@@ -15,12 +15,15 @@ def index():
 def env():
     return 'BINANCE_API_KEY: ' + os.getenv('BINANCE_API_KEY')
 
-@main.route('/testeBinance', methods=['POST'])
+@main.route('/testeBinance', methods=['POST','GET'])
 def testeBinance():
     binanceUtil = BinanceUtil(
         apiKey=os.environ.get('BINANCE_API_KEY'),
         secretKey=os.environ.get('BINANCE_SECRET_KEY'),
         testnet=os.environ.get('TESTNET'),
+        percentualSizeTrade=float(os.environ.get('PERCENTUAL_SIZE_TRADE')),
+        leverage=int(os.environ.get('LEVERAGE')),
+        concurrentTrades=int(os.environ.get('CONCURRENT_TRADES'))
     )
     return str(binanceUtil.get_account_balance('USDT'))
 
@@ -41,6 +44,9 @@ def webhook_testnet():
                 apiKey=os.environ.get('BINANCE_API_KEY'),
                 secretKey=os.environ.get('BINANCE_SECRET_KEY'),
                 testnet=os.environ.get('TESTNET'),
+                percentualSizeTrade=float(os.environ.get('PERCENTUAL_SIZE_TRADE')),
+                leverage=int(os.environ.get('LEVERAGE')),
+                concurrentTrades=int(os.environ.get('CONCURRENT_TRADES'))
             )
             openedTrades = binanceUtil.get_list_trades()
             if len(openedTrades) < binanceUtil.concurrentTrades:
@@ -49,14 +55,12 @@ def webhook_testnet():
                     if data['type'] == 'Buy':
                         binanceUtil.openLong(
                             symbol=symbol,
-                            leverage=10,
                             stopLossPrice=data['SL'],
                             takeProfitPrice=data['TP']
                         )
                     else:
                         binanceUtil.openShort(
                             symbol=symbol,
-                            leverage=10,
                             stopLossPrice=data['SL'],
                             takeProfitPrice=data['TP']
                         )

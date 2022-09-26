@@ -6,13 +6,15 @@ from binance.helpers import round_step_size
 
 class BinanceUtil:
 
-    def __init__(self, apiKey, secretKey, testnet):
+    def __init__(self, apiKey, secretKey, testnet, leverage, concurrentTrades, percentualSizeTrade):
         self.apiKey = apiKey
         self.secretKey = secretKey
         self.client = Client(self.apiKey, self.secretKey, testnet=testnet)
-        self.client.API_URL = 'https://testnet.binance.vision/api'
-        self.percentualSizeTrade = 5
-        self.concurrentTrades = 5
+        if testnet:
+            self.client.API_URL = 'https://testnet.binance.vision/api'
+        self.percentualSizeTrade = percentualSizeTrade
+        self.concurrentTrades = concurrentTrades
+        self.leverage = leverage
 
     def get_account_balance(self, asset):
         balances = self.client.futures_account_balance()
@@ -45,9 +47,9 @@ class BinanceUtil:
                 openedPositions.append(position)
         return (openedPositions)
 
-    def openLong(self, symbol, leverage, stopLossPrice, takeProfitPrice):
+    def openLong(self, symbol, stopLossPrice, takeProfitPrice):
         balance = self.get_account_balance(asset='USDT') * self.percentualSizeTrade / 100
-        self.client.futures_change_leverage(symbol=symbol, leverage=leverage)
+        self.client.futures_change_leverage(symbol=symbol, leverage=self.leverage)
         tick_size = float(self.get_tick_size(symbol))
         step_size = float(self.get_step_size(symbol))
         symbol_info = self.client.get_ticker(symbol=symbol)
