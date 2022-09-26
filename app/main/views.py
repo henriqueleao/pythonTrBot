@@ -8,6 +8,10 @@ from ..binance_functions import BinanceUtil
 def index():
     return 'Trading Bot1 - teste'
 
+@main.route('/env',methods=['POST'])
+def env():
+    return 'BINANCE_API_KEY: ' + os.environ.get('BINANCE_API_KEY')
+
 @main.route('/testeBinance', methods=['POST'])
 def testeBinance():
     binanceUtil = BinanceUtil(
