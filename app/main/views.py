@@ -17,10 +17,11 @@ def env():
 
 @main.route('/testeBinance', methods=['POST','GET'])
 def testeBinance():
+    testnet = os.environ.get('TESTNET') == 'True'
     binanceUtil = BinanceUtil(
         apiKey=os.environ.get('BINANCE_API_KEY'),
         secretKey=os.environ.get('BINANCE_SECRET_KEY'),
-        testnet=os.environ.get('TESTNET'),
+        testnet=testnet,
         percentualSizeTrade=float(os.environ.get('PERCENTUAL_SIZE_TRADE')),
         leverage=int(os.environ.get('LEVERAGE')),
         concurrentTrades=int(os.environ.get('CONCURRENT_TRADES'))
