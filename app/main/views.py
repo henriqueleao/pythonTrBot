@@ -28,7 +28,7 @@ def testeBinance():
     return str(binanceUtil.get_account_balance('USDT'))
 
 
-@main.route('/webhook_testnet', methods=['POST'])
+@main.route('/webhook', methods=['POST'])
 def webhook_testnet():
     data = json.loads(request.data)
     if data['pwd'] != os.environ.get('WEBHOOK_PASSPHRASE'):
