@@ -2,7 +2,10 @@ from . import main
 import traceback
 import json, os
 from flask import request, abort
+from dotenv import load_dotenv
 from ..binance_functions import BinanceUtil
+
+load_dotenv()
 
 @main.route('/')
 def index():
