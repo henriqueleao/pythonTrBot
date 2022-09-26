@@ -45,6 +45,8 @@ def webhook_testnet():
                         )
                 else:
                     return f'Trade para {symbol} já aberto'
+            else:
+                return f'Quantidade maxima de trades ja em andamento'
         except:
             traceback.print_exc()
             abort(500)
