@@ -11,7 +11,7 @@ class BinanceUtil:
         self.secretKey = secretKey
         self.client = Client(self.apiKey, self.secretKey, testnet=testnet)
         self.client.API_URL = 'https://testnet.binance.vision/api'
-        self.percentualSizeTrade = 10
+        self.percentualSizeTrade = 5
         self.concurrentTrades = 5
 
     def get_account_balance(self, asset):
@@ -45,7 +45,7 @@ class BinanceUtil:
                 openedPositions.append(position)
         return (openedPositions)
 
-    def openLong(self, symbol, leverage, stopLossPrice, TakeProfitPrice):
+    def openLong(self, symbol, leverage, stopLossPrice, takeProfitPrice):
         balance = self.get_account_balance(asset='USDT') * self.percentualSizeTrade / 100
         self.client.futures_change_leverage(symbol=symbol, leverage=leverage)
         tick_size = float(self.get_tick_size(symbol))
@@ -54,6 +54,9 @@ class BinanceUtil:
         symbol_price = float(symbol_info['lastPrice'])
         qty_bruta = Decimal(balance / symbol_price)
         quantity = round_step_size(qty_bruta, step_size)
+
+        take_profit_price = round_step_size(takeProfitPrice, tick_size)
+        stop_loss_price = round_step_size(stopLossPrice, tick_size)
         market_order_long = self.client.futures_create_order(
             symbol=symbol,
             side='BUY',
@@ -72,6 +75,42 @@ class BinanceUtil:
         sell_stop_market_short = self.client.futures_create_order(
             symbol=symbol,
             side='SELL',
+            type='STOP_MARKET',
+            quantity=quantity,
+            stopPrice=stop_loss_price
+        )
+
+    def openShort(self, symbol, leverage, stopLossPrice, takeProfitPrice):
+        balance = self.get_account_balance(asset='USDT') * self.percentualSizeTrade / 100
+        self.client.futures_change_leverage(symbol=symbol, leverage=leverage)
+        tick_size = float(self.get_tick_size(symbol))
+        step_size = float(self.get_step_size(symbol))
+        symbol_info = self.client.get_ticker(symbol=symbol)
+        symbol_price = float(symbol_info['lastPrice'])
+        qty_bruta = Decimal(balance / symbol_price)
+        quantity = round_step_size(qty_bruta, step_size)
+
+        take_profit_price = round_step_size(takeProfitPrice, tick_size)
+        stop_loss_price = round_step_size(stopLossPrice, tick_size)
+
+        market_order_short = self.client.futures_create_order(
+            symbol=symbol,
+            side='SELL',
+            type='MARKET',
+            quantity=quantity
+        )
+
+        sell_gain_market_short = self.client.futures_create_order(
+            symbol=symbol,
+            side='BUY',
+            type='TAKE_PROFIT_MARKET',
+            quantity=quantity,
+            stopPrice=take_profit_price
+        )
+
+        sell_stop_market_long = self.client.futures_create_order(
+            symbol=symbol,
+            side='BUY',
             type='STOP_MARKET',
             quantity=quantity,
             stopPrice=stop_loss_price

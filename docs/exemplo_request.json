@@ -1,0 +1,10 @@
+{
+  "type" : "Buy",
+  "sym" : "BTCUSDTPERP",
+  "SL" : "0.000400",
+  "TP" : "0.000600",
+  "P" : "0.000500",
+  "period" : 15,
+  "pwd" : "senhaSecreta",
+  "stg" : "ht zlsma ha"
+}
