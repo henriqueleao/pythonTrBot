@@ -170,7 +170,8 @@ class BinanceUtil:
                 type='TRAILING_STOP_MARKET',
                 quantity=quantity,
                 activationPrice=take_profit_price,
-                callbackRate=self.callBackRate
+                callbackRate=self.callBackRate,
+                reduceOnly="true"
             )
         else:
             sell_gain_market_short = self.client.futures_create_order(
@@ -178,7 +179,8 @@ class BinanceUtil:
                 side='BUY',
                 type='TAKE_PROFIT_MARKET',
                 quantity=quantity,
-                stopPrice=take_profit_price
+                stopPrice=take_profit_price,
+                reduceOnly="true"
             )
 
         sell_stop_market_long = self.client.futures_create_order(
@@ -186,5 +188,6 @@ class BinanceUtil:
             side='BUY',
             type='STOP_MARKET',
             quantity=quantity,
-            stopPrice=stop_loss_price
+            stopPrice=stop_loss_price,
+            reduceOnly="true"
         )
