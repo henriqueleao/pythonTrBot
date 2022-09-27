@@ -39,6 +39,8 @@ def webhook():
         }
     else:
         try:
+            if os.getenv('BOT_ATIVO') != 'True':
+                return 'Bot Inativo'
             symbol = data['sym']
             symbol = symbol[:-4]
             testnet = os.environ.get('TESTNET') == 'True'
