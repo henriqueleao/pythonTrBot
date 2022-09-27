@@ -24,7 +24,10 @@ def testeBinance():
         testnet=testnet,
         percentualSizeTrade=float(os.environ.get('PERCENTUAL_SIZE_TRADE')),
         leverage=int(os.environ.get('LEVERAGE')),
-        concurrentTrades=int(os.environ.get('CONCURRENT_TRADES'))
+        concurrentTrades=int(os.environ.get('CONCURRENT_TRADES')),
+        useTrailing= os.environ.get('USE_TRAILING') == 'True',
+        callBackRate= float(os.environ.get('CALLBACK_RATE')),
+        activationPerc=float(os.environ.get('ACTIVATION_PERC'))
     )
     return str(binanceUtil.get_account_balance('USDT'))
 
@@ -50,7 +53,10 @@ def webhook():
                 testnet=testnet,
                 percentualSizeTrade=float(os.environ.get('PERCENTUAL_SIZE_TRADE')),
                 leverage=int(os.environ.get('LEVERAGE')),
-                concurrentTrades=int(os.environ.get('CONCURRENT_TRADES'))
+                concurrentTrades=int(os.environ.get('CONCURRENT_TRADES')),
+                useTrailing=os.environ.get('USE_TRAILING') == 'True',
+                callBackRate=float(os.environ.get('CALLBACK_RATE')),
+                activationPerc=float(os.environ.get('ACTIVATION_PERC'))
             )
             openedTrades = binanceUtil.get_list_trades()
             if len(openedTrades) < binanceUtil.concurrentTrades:

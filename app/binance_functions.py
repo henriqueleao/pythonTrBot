@@ -6,7 +6,7 @@ from binance.helpers import round_step_size
 
 class BinanceUtil:
 
-    def __init__(self, apiKey, secretKey, testnet, leverage, concurrentTrades, percentualSizeTrade):
+    def __init__(self, apiKey, secretKey, testnet, leverage, concurrentTrades, percentualSizeTrade, useTrailing, callBackRate, activationPerc):
         self.apiKey = apiKey
         self.secretKey = secretKey
         self.client = Client(self.apiKey, self.secretKey, testnet=testnet)
@@ -15,6 +15,9 @@ class BinanceUtil:
         self.percentualSizeTrade = percentualSizeTrade
         self.concurrentTrades = concurrentTrades
         self.leverage = leverage
+        self.useTrailing = useTrailing
+        self.callBackRate = callBackRate
+        self.activationPerc = activationPerc
 
     def get_account_balance(self, asset):
         balances = self.client.futures_account_balance()
@@ -46,6 +49,15 @@ class BinanceUtil:
             if position['entryPrice'] != '0.0':
                 openedPositions.append(position)
         return (openedPositions)
+
+    def useTrailingInTrade(self, symbolPrice, takeProfitPrice):
+        if self.useTrailing:
+            difPerc = Decimal(abs((takeProfitPrice-symbolPrice)/symbolPrice)*100)
+            if difPerc >= self.activationPerc:
+                return True
+            else:
+                return False
+
 
     def openLongTrailing(self, symbol, stopLossPrice, takeProfitPrice):
         balance = self.get_account_balance(asset='USDT') * self.percentualSizeTrade / 100
@@ -102,20 +114,33 @@ class BinanceUtil:
             quantity=quantity
         )
 
-        sell_gain_market_long = self.client.futures_create_order(
-            symbol=symbol,
-            side='SELL',
-            type='TAKE_PROFIT_MARKET',
-            quantity=quantity,
-            stopPrice=take_profit_price
-        )
+        if self.useTrailingInTrade(symbol_price,take_profit_price):
+            sell_gain_market_long = self.client.futures_create_order(
+                symbol=symbol,
+                side='SELL',
+                type='TRAILING_STOP_MARKET',
+                quantity=quantity,
+                activationPrice=take_profit_price,
+                callbackRate=self.callBackRate,
+                reduceOnly="true"
+            )
+        else:
+            sell_gain_market_long = self.client.futures_create_order(
+                symbol=symbol,
+                side='SELL',
+                type='TAKE_PROFIT_MARKET',
+                quantity=quantity,
+                stopPrice=take_profit_price,
+                reduceOnly="true"
+            )
 
         sell_stop_market_short = self.client.futures_create_order(
             symbol=symbol,
             side='SELL',
             type='STOP_MARKET',
             quantity=quantity,
-            stopPrice=stop_loss_price
+            stopPrice=stop_loss_price,
+            reduceOnly="true"
         )
 
     def openShort(self, symbol, stopLossPrice, takeProfitPrice):
@@ -138,13 +163,23 @@ class BinanceUtil:
             quantity=quantity
         )
 
-        sell_gain_market_short = self.client.futures_create_order(
-            symbol=symbol,
-            side='BUY',
-            type='TAKE_PROFIT_MARKET',
-            quantity=quantity,
-            stopPrice=take_profit_price
-        )
+        if self.useTrailingInTrade(symbol_price,take_profit_price):
+            sell_gain_market_long = self.client.futures_create_order(
+                symbol=symbol,
+                side='BUY',
+                type='TRAILING_STOP_MARKET',
+                quantity=quantity,
+                activationPrice=take_profit_price,
+                callbackRate=self.callBackRate
+            )
+        else:
+            sell_gain_market_short = self.client.futures_create_order(
+                symbol=symbol,
+                side='BUY',
+                type='TAKE_PROFIT_MARKET',
+                quantity=quantity,
+                stopPrice=take_profit_price
+            )
 
         sell_stop_market_long = self.client.futures_create_order(
             symbol=symbol,
