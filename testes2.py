@@ -14,9 +14,9 @@ binanceUtil = BinanceUtil(
     percentualSizeTrade=10,
     leverage=10,
     concurrentTrades=5,
-    useTrailing = True,
+    useTrailing = False,
     callBackRate = 0.5,
     activationPerc = 1
 )
 
-binanceUtil.openLong('BTCUSDT',18500,20000)
+binanceUtil.openLong2('BTCUSDT',18500,20000)

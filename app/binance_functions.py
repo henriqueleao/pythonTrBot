@@ -95,6 +95,58 @@ class BinanceUtil:
             stopPrice=stop_loss_price
         )
 
+    def openLong2(self, symbol, stopLossPrice, takeProfitPrice):
+        balance = self.get_account_balance(asset='USDT') * self.percentualSizeTrade / 100
+        self.client.futures_change_leverage(symbol=symbol, leverage=self.leverage)
+        tick_size = float(self.get_tick_size(symbol))
+        step_size = float(self.get_step_size(symbol))
+        symbol_info = self.client.get_ticker(symbol=symbol)
+        symbol_price = float(symbol_info['lastPrice'])
+        qty_bruta = Decimal(balance / symbol_price)
+        quantity = round_step_size(qty_bruta, step_size)
+
+        take_profit_price = round_step_size(takeProfitPrice, tick_size)
+        stop_loss_price = round_step_size(stopLossPrice, tick_size)
+        market_order_long = self.client.futures_create_order(
+            symbol=symbol,
+            side='BUY',
+            type='MARKET',
+            quantity=quantity
+        )
+
+        if self.useTrailingInTrade(symbol_price,take_profit_price):
+            sell_gain_market_long = self.client.futures_create_order(
+                symbol=symbol,
+                side='SELL',
+                type='TRAILING_STOP_MARKET',
+                quantity=quantity,
+                activationPrice=take_profit_price,
+                callbackRate=self.callBackRate,
+                reduceOnly="true",
+                timeInForce='GTE_GTC'
+            )
+        else:
+            sell_gain_market_long = self.client.futures_create_order(
+                symbol=symbol,
+                side='SELL',
+                type='TAKE_PROFIT_MARKET',
+                quantity=quantity,
+                stopPrice=take_profit_price,
+                reduceOnly="true",
+                timeInForce='GTE_GTC'
+            )
+
+        sell_stop_market_short = self.client.futures_create_order(
+            symbol=symbol,
+            side='SELL',
+            type='STOP_MARKET',
+            quantity=quantity,
+            stopPrice=stop_loss_price,
+            reduceOnly="true",
+            timeInForce='GTE_GTC'
+        )
+
+
     def openLong(self, symbol, stopLossPrice, takeProfitPrice):
         balance = self.get_account_balance(asset='USDT') * self.percentualSizeTrade / 100
         self.client.futures_change_leverage(symbol=symbol, leverage=self.leverage)
@@ -122,7 +174,8 @@ class BinanceUtil:
                 quantity=quantity,
                 activationPrice=take_profit_price,
                 callbackRate=self.callBackRate,
-                reduceOnly="true"
+                reduceOnly="true",
+                timeInForce='GTE_GTC'
             )
         else:
             sell_gain_market_long = self.client.futures_create_order(
@@ -131,7 +184,8 @@ class BinanceUtil:
                 type='TAKE_PROFIT_MARKET',
                 quantity=quantity,
                 stopPrice=take_profit_price,
-                reduceOnly="true"
+                reduceOnly="true",
+                timeInForce='GTE_GTC'
             )
 
         sell_stop_market_short = self.client.futures_create_order(
@@ -140,7 +194,8 @@ class BinanceUtil:
             type='STOP_MARKET',
             quantity=quantity,
             stopPrice=stop_loss_price,
-            reduceOnly="true"
+            reduceOnly="true",
+            timeInForce='GTE_GTC'
         )
 
     def openShort(self, symbol, stopLossPrice, takeProfitPrice):
@@ -171,7 +226,8 @@ class BinanceUtil:
                 quantity=quantity,
                 activationPrice=take_profit_price,
                 callbackRate=self.callBackRate,
-                reduceOnly="true"
+                reduceOnly="true",
+                timeInForce='GTE_GTC'
             )
         else:
             sell_gain_market_short = self.client.futures_create_order(
@@ -180,7 +236,8 @@ class BinanceUtil:
                 type='TAKE_PROFIT_MARKET',
                 quantity=quantity,
                 stopPrice=take_profit_price,
-                reduceOnly="true"
+                reduceOnly="true",
+                timeInForce='GTE_GTC'
             )
 
         sell_stop_market_long = self.client.futures_create_order(
@@ -189,5 +246,6 @@ class BinanceUtil:
             type='STOP_MARKET',
             quantity=quantity,
             stopPrice=stop_loss_price,
-            reduceOnly="true"
+            reduceOnly="true",
+            timeInForce='GTE_GTC'
         )
